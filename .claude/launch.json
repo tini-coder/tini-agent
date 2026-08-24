@@ -1,0 +1,18 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "tini-dashboard",
+      "runtimeExecutable": ".venv/bin/python",
+      "runtimeArgs": ["-m", "tini.ops.dashboard"],
+      "port": 9000,
+      "autoPort": false
+    },
+    {
+      "name": "phoenix-traces",
+      "runtimeExecutable": ".venv/bin/python",
+      "runtimeArgs": ["-m", "phoenix.server.main", "serve"],
+      "port": 6006
+    }
+  ]
+}

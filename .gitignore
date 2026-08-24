@@ -1,0 +1,33 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+state.db
+traces/
+*.ics
+.DS_Store
+dist/
+.pytest_cache/
+.ruff_cache/
+.waku/
+.tini/
+.tini.bak-*/
+.tini.prerename-bak/
+.waku.prerename-bak-*/
+# Any ALTERNATE agent home, not just the default one. DISCORD_HOME gives the
+# bot its own memory (see tini/gateway/discord.py); TINI_HOME can point anywhere.
+# Without this glob only `.tini/` was covered, so a second home's SOUL.md,
+# usage.jsonl and outbox/ were tracked — the exact files you least want pushed.
+.tini-*/
+.env.prerename-bak
+
+# Delegated coding deliverables (dated run folders + auto-run logs)
+tini_workspace/
+
+# Google OAuth: the client file you download from Cloud Console, and any token
+# it produces. Nothing here should ever be committed — belt and braces, because
+# the docs used to tell people to drop credentials.json in the repo root.
+credentials.json
+client_secret*.json
+*token*.json
+.gcp/
