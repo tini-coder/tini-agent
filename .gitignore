@@ -9,11 +9,9 @@ traces/
 dist/
 .pytest_cache/
 .ruff_cache/
-.waku/
 .tini/
 .tini.bak-*/
 .tini.prerename-bak/
-.waku.prerename-bak-*/
 # Any ALTERNATE agent home, not just the default one. DISCORD_HOME gives the
 # bot its own memory (see tini/gateway/discord.py); TINI_HOME can point anywhere.
 # Without this glob only `.tini/` was covered, so a second home's SOUL.md,
