@@ -1,4 +1,4 @@
-# tini-agent
+# Tini-agent
 
 **Your own AI assistant. On your laptop. In code you can read in an afternoon.**
 
@@ -13,12 +13,13 @@ serious agent: **Harness · Context · Tools · Loop · Memory · Eval/LLM-Ops**
 - **Watch it think.** A local dashboard lights up every message as it flows through the harness.
 - **Eval built in.** Deterministic tests *and* LLM-as-judge, side by side, with a release gate.
 
-![tini-agent architecture — the whiteboard](docs/architecture-whiteboard.jpg
+![tini-agent architecture — the whiteboard](docs/architecture-whiteboard.jpg)
 
 > The system-design whiteboard from the series.
 > Every box maps to a file — see [the whiteboard maps to the code](#the-whiteboard-maps-to-the-code).
 
-**▶ [Watch the 20-min code walkthrough](https://www.youtube.com/watch?v=rvRyBhILrls&list=PLE9hy4A7ZTmpGq7GHf5tgGFWh2277AeDR&index=42)** — the loop, the memory pillars, the evals, the Telegram gateway and the "Tini Tini" wake word, live.
+**▶ [Watch the  code walkthrough](https://www.youtube.com/@tiniCoder)**
+ — the loop, the memory pillars, the evals, the Telegram gateway and the "Tini" wake word, live.
 
 <!-- [YouTube](https://www.youtube.com/@SeanAIStories) · [X](https://x.com/ShenSeanChen)  -->
 
