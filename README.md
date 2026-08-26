@@ -21,7 +21,6 @@ serious agent: **Harness · Context · Tools · Loop · Memory · Eval/LLM-Ops**
 **▶ [Watch the  code walkthrough](https://www.youtube.com/@tiniCoder)**
  — the loop, the memory pillars, the evals, the Telegram gateway and the "Tini" wake word, live.
 
-<!-- [YouTube](https://www.youtube.com/@SeanAIStories) · [X](https://x.com/ShenSeanChen)  -->
 
 <!-- ### ☕️ [Buy me a coffee](https://buy.stripe.com/5kA176bA895ggog4gh) — it keeps this repo (and the videos) coming -->
 
@@ -39,7 +38,7 @@ It will tell you which key to set the first time. Want to **read the code** (the
 point of this repo) or contribute — clone it instead:
 
 ```bash
-git clone https://github.com/ShenSeanChen/tini-agent && cd tini-agent
+git clone https://github.com/tini-coder/tini-agent && cd tini-agent
 uv venv && uv pip install -e .          # create the env + install the `tini` command
 cp .env.example .env                    # pick a provider, paste ONE key
 uv run tini                             # talk to your Tini in the terminal
@@ -136,9 +135,6 @@ and remix it for your own team:
 | [`tini-architecture.excalidraw`](docs/whiteboards/tini-architecture.excalidraw) | Tini itself — harness, loop, memory pillars, LLM Ops (editable rebuild of [the whiteboard](docs/architecture-whiteboard.png)) |
 | [`loop-vs-graph.excalidraw`](docs/whiteboards/loop-vs-graph.excalidraw) | Loop vs graph engineering — the ladder, and two timelines from a measured run of `tini brief` against `tini gather` ([the write-up](docs/loop-vs-graph.md)) |
 
-New charts land here with every video. If they help you,
-[a star](https://github.com/ShenSeanChen/tini-agent) keeps them coming — and
-[sponsoring](https://github.com/sponsors/ShenSeanChen) gets new whiteboards early.
 
 ## The whiteboard maps to the code
 
@@ -160,12 +156,12 @@ flowchart LR
   MEM -->|every N chats| CONS["Consolidate → facts"] --> MEM
   REPLY --> OPS["LLM Ops<br/>trace → eval → gate → release"]
   OPS -. improved prompt/config .-> WM
-  WM -.- WATERMARK["tini-agent · Sean's AI Stories · @ShenSeanChen"]:::wm
+  WM -.- WATERMARK["tini-agent · Sean's AI Stories · @"]:::wm
   classDef wm fill:none,stroke:none,color:#9aa0aa,font-size:11px;
 ```
 
 > _Architecture of **tini-agent** — built on the series
-> ([@ShenSeanChen](https://github.com/ShenSeanChen)). Code is MIT; **this diagram is licensed CC BY-NC-SA 4.0** —
+> ([@tiniCoder](https://github.com/tini-coder)). Code is MIT; **this diagram is licensed CC BY-NC-SA 4.0** —
 > reuse it with credit to the channel, not for commercial resale._
 
 Every box is one module (full version with every file path: [docs/architecture.md](docs/architecture.md)):
@@ -421,37 +417,3 @@ something, but nothing is over-promised (they report "coming soon", and the dash
 
 The point of a teaching repo is a readable core; these come alive one at a time, tested.
 
-## Upgrade paths (when you outgrow the defaults)
-
-| Default (zero setup) | Upgrade | How |
-|---|---|---|
-| SQLite FTS5 keyword memory | Supabase pgvector semantic search | `TINI_SEMANTIC_STORE=supabase` + [sql/init_supabase.sql](sql/init_supabase.sql) — the exact schema from [launch-rag](https://github.com/ShenSeanChen/launch-rag)/[launch-agentic-rag](https://github.com/ShenSeanChen/launch-agentic-rag) |
-| Mock calendar (ICS + SQLite) | Apple / Google Calendar | `TINI_APPLE_CALENDAR=1` (macOS) or `TINI_GOOGLE_CALENDAR=1` with `pip install -e '.[gcal]'` — the tool schema stays |
-| Hand-built memory pillars | mem0 / Zep / LangMem | `pip install -e '.[arena]'` and set `TINI_SEMANTIC_STORE` — then race them against each other in the Arena's Memory tab. [Where to see your memories in each provider's own console](docs/memory-backends-playbook.md) |
-
-## Related repos (the building blocks)
-
-[launch-rag](https://github.com/ShenSeanChen/launch-rag) ·
-[launch-agentic-rag](https://github.com/ShenSeanChen/launch-agentic-rag) ·
-[launch-agent-skills](https://github.com/ShenSeanChen/launch-agent-skills) ·
-[launch-mcp-demo](https://github.com/ShenSeanChen/launch-mcp-demo) ·
-[launch-DeepResearch-Backend](https://github.com/ShenSeanChen/launch-DeepResearch-Backend)
-
-## Community
-
-Star the repo, join the [Discord](https://discord.gg/ebbdvSCXqu), and grab a
-[good first issue](https://github.com/ShenSeanChen/tini-agent/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
-— that link is the live list, so it's always current. Gateways, memory backends and
-community skills are all shaped to be first PRs; the easiest needs no Python at all
-(see [contributing a skill](CONTRIBUTING.md)).
-
-**Comment on an issue before you start** and it gets assigned to you, so two people
-never build the same thing.
-
-## Also from me
-
-- **[launch-mvp-stripe-nextjs-supabase](https://github.com/ShenSeanChen/launch-mvp-stripe-nextjs-supabase)** — NextJS + Supabase + Stripe, everything you need to ship a SaaS.
-- **[AutoManus.io](https://automanus.io)** — my AI startup: a sales lead manager for made-to-order products. It embeds where conversations already happen (WhatsApp, email, web chat) to capture inbound, automate follow-ups and kill CRM busywork. Pre-seed backed by Character VC. ([AutoManus Discord](https://discord.gg/SxXATg9rSK))
-
-MIT — see [LICENSE](LICENSE). Built by [@ShenSeanChen](https://github.com/ShenSeanChen)
-([YouTube](https://www.youtube.com/@SeanAIStories) · [X](https://x.com/ShenSeanChen)).
