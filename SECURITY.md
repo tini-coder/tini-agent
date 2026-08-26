@@ -3,17 +3,6 @@
 tini runs on your own machine, with your own API keys, and reads your own
 calendar, notes and messages. That makes a few things worth stating plainly.
 
-## Reporting a vulnerability
-
-Please **don't** open a public issue for a security problem. Use GitHub's
-[private vulnerability reporting](https://github.com/ShenSeanChen/tini-agent/security/advisories/new),
-or email the address on [@ShenSeanChen](https://github.com/ShenSeanChen)'s
-profile.
-
-Expect a first response within 48 hours. If it's a real issue we'll agree a
-disclosure timeline with you and credit you in the fix, unless you'd rather stay
-anonymous.
-
 ## What we consider in scope
 
 - Anything that exfiltrates keys, `.env`, memory (`state.db`), traces, or
