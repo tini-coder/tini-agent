@@ -13,11 +13,7 @@ serious agent: **Harness · Context · Tools · Loop · Memory · Eval/LLM-Ops**
 - **Watch it think.** A local dashboard lights up every message as it flows through the harness.
 - **Eval built in.** Deterministic tests *and* LLM-as-judge, side by side, with a release gate.
 
-<<<<<<< HEAD
-![tini-agent architecture — the whiteboard](docs/architecture-whiteboard.jpg)
-=======
 ![tini-agent architecture — the whiteboard](docs/architecture-whiteboard.png)
->>>>>>> 3d3954da7087079ca79b02d5b6c60b4bfd92a047
 
 > The system-design whiteboard from the series.
 > Every box maps to a file — see [the whiteboard maps to the code](#the-whiteboard-maps-to-the-code).
