@@ -5736,6 +5736,115 @@ wheels = [
 ]
 
 [[package]]
+name = "tini-agent"
+version = "0.1.4"
+source = { editable = "." }
+dependencies = [
+    { name = "anthropic" },
+    { name = "openai" },
+    { name = "python-dotenv" },
+    { name = "rich" },
+]
+
+[package.optional-dependencies]
+arena = [
+    { name = "langgraph" },
+    { name = "langmem" },
+    { name = "mem0ai" },
+    { name = "zep-cloud" },
+]
+dev = [
+    { name = "pytest" },
+    { name = "ruff" },
+]
+discord = [
+    { name = "discord-py" },
+]
+eval = [
+    { name = "deepeval" },
+    { name = "pytest" },
+]
+gcal = [
+    { name = "google-api-python-client" },
+    { name = "google-auth" },
+    { name = "google-auth-httplib2" },
+    { name = "google-auth-oauthlib" },
+    { name = "httplib2" },
+]
+mcp = [
+    { name = "mcp" },
+]
+notion = [
+    { name = "notion-client" },
+]
+supabase = [
+    { name = "supabase" },
+]
+telegram = [
+    { name = "python-telegram-bot" },
+]
+tracing = [
+    { name = "arize-phoenix" },
+    { name = "opentelemetry-exporter-otlp" },
+    { name = "opentelemetry-sdk" },
+]
+voice = [
+    { name = "faster-whisper" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
+    { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+    { name = "sounddevice" },
+]
+voice-neural = [
+    { name = "kokoro" },
+    { name = "soundfile" },
+]
+whatsapp = [
+    { name = "httpx" },
+]
+youtube = [
+    { name = "google-api-python-client" },
+    { name = "google-auth" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "anthropic", specifier = ">=0.40" },
+    { name = "arize-phoenix", marker = "extra == 'tracing'", specifier = ">=7.0" },
+    { name = "deepeval", marker = "extra == 'eval'", specifier = ">=2.0" },
+    { name = "discord-py", marker = "extra == 'discord'", specifier = ">=2.4" },
+    { name = "faster-whisper", marker = "extra == 'voice'", specifier = ">=1.0" },
+    { name = "google-api-python-client", marker = "extra == 'gcal'", specifier = ">=2.0" },
+    { name = "google-api-python-client", marker = "extra == 'youtube'", specifier = ">=2.0" },
+    { name = "google-auth", marker = "extra == 'gcal'", specifier = ">=2.0" },
+    { name = "google-auth", marker = "extra == 'youtube'", specifier = ">=2.0" },
+    { name = "google-auth-httplib2", marker = "extra == 'gcal'", specifier = ">=0.2" },
+    { name = "google-auth-oauthlib", marker = "extra == 'gcal'", specifier = ">=1.0" },
+    { name = "httplib2", marker = "extra == 'gcal'", specifier = ">=0.22" },
+    { name = "httpx", marker = "extra == 'whatsapp'", specifier = ">=0.25" },
+    { name = "kokoro", marker = "extra == 'voice-neural'", specifier = ">=0.9" },
+    { name = "langgraph", marker = "extra == 'arena'", specifier = ">=0.3" },
+    { name = "langmem", marker = "extra == 'arena'", specifier = ">=0.0.30" },
+    { name = "mcp", marker = "extra == 'mcp'", specifier = ">=1.0" },
+    { name = "mem0ai", marker = "extra == 'arena'", specifier = ">=2.0" },
+    { name = "notion-client", marker = "extra == 'notion'", specifier = ">=2.5" },
+    { name = "numpy", marker = "extra == 'voice'", specifier = ">=1.24" },
+    { name = "openai", specifier = ">=1.50" },
+    { name = "opentelemetry-exporter-otlp", marker = "extra == 'tracing'", specifier = ">=1.27" },
+    { name = "opentelemetry-sdk", marker = "extra == 'tracing'", specifier = ">=1.27" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
+    { name = "pytest", marker = "extra == 'eval'", specifier = ">=8.0" },
+    { name = "python-dotenv", specifier = ">=1.0" },
+    { name = "python-telegram-bot", marker = "extra == 'telegram'", specifier = ">=21.0" },
+    { name = "rich", specifier = ">=13.0" },
+    { name = "ruff", marker = "extra == 'dev'", specifier = "==0.16.0" },
+    { name = "sounddevice", marker = "extra == 'voice'", specifier = ">=0.4" },
+    { name = "soundfile", marker = "extra == 'voice-neural'", specifier = ">=0.12" },
+    { name = "supabase", marker = "extra == 'supabase'", specifier = ">=2.0" },
+    { name = "zep-cloud", marker = "extra == 'arena'", specifier = ">=2.0" },
+]
+provides-extras = ["eval", "tracing", "telegram", "gcal", "youtube", "discord", "whatsapp", "voice", "voice-neural", "supabase", "arena", "notion", "mcp", "dev"]
+
+[[package]]
 name = "tokenizers"
 version = "0.22.2"
 source = { registry = "https://pypi.org/simple" }
@@ -6040,109 +6149,6 @@ sdist = { url = "https://files.pythonhosted.org/packages/a2/65/b7c6c443ccc58678c
 wheels = [
     { url = "https://files.pythonhosted.org/packages/45/ec/dbb7e5a6b91f86bfb9eb7d2988a2730907b6a729875b949c7f022e8b88fa/uvicorn-0.51.0-py3-none-any.whl", hash = "sha256:5d38af6cd620f2ae3849fb44fd4879e0890aa1febe8d47eb355fb45d93fe6a5b", size = 73219, upload-time = "2026-07-08T10:59:04.44Z" },
 ]
-
-[[package]]
-name = "tini-agent"
-version = "0.1.4"
-source = { editable = "." }
-dependencies = [
-    { name = "anthropic" },
-    { name = "openai" },
-    { name = "python-dotenv" },
-    { name = "rich" },
-]
-
-[package.optional-dependencies]
-arena = [
-    { name = "langgraph" },
-    { name = "langmem" },
-    { name = "mem0ai" },
-    { name = "zep-cloud" },
-]
-dev = [
-    { name = "pytest" },
-    { name = "ruff" },
-]
-discord = [
-    { name = "discord-py" },
-]
-eval = [
-    { name = "deepeval" },
-    { name = "pytest" },
-]
-gcal = [
-    { name = "google-api-python-client" },
-    { name = "google-auth" },
-    { name = "google-auth-httplib2" },
-    { name = "google-auth-oauthlib" },
-    { name = "httplib2" },
-]
-mcp = [
-    { name = "mcp" },
-]
-notion = [
-    { name = "notion-client" },
-]
-supabase = [
-    { name = "supabase" },
-]
-telegram = [
-    { name = "python-telegram-bot" },
-]
-tracing = [
-    { name = "arize-phoenix" },
-    { name = "opentelemetry-exporter-otlp" },
-    { name = "opentelemetry-sdk" },
-]
-voice = [
-    { name = "faster-whisper" },
-    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
-    { name = "numpy", version = "2.5.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
-    { name = "sounddevice" },
-]
-voice-neural = [
-    { name = "kokoro" },
-    { name = "soundfile" },
-]
-whatsapp = [
-    { name = "httpx" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "anthropic", specifier = ">=0.40" },
-    { name = "arize-phoenix", marker = "extra == 'tracing'", specifier = ">=7.0" },
-    { name = "deepeval", marker = "extra == 'eval'", specifier = ">=2.0" },
-    { name = "discord-py", marker = "extra == 'discord'", specifier = ">=2.4" },
-    { name = "faster-whisper", marker = "extra == 'voice'", specifier = ">=1.0" },
-    { name = "google-api-python-client", marker = "extra == 'gcal'", specifier = ">=2.0" },
-    { name = "google-auth", marker = "extra == 'gcal'", specifier = ">=2.0" },
-    { name = "google-auth-httplib2", marker = "extra == 'gcal'", specifier = ">=0.2" },
-    { name = "google-auth-oauthlib", marker = "extra == 'gcal'", specifier = ">=1.0" },
-    { name = "httplib2", marker = "extra == 'gcal'", specifier = ">=0.22" },
-    { name = "httpx", marker = "extra == 'whatsapp'", specifier = ">=0.25" },
-    { name = "kokoro", marker = "extra == 'voice-neural'", specifier = ">=0.9" },
-    { name = "langgraph", marker = "extra == 'arena'", specifier = ">=0.3" },
-    { name = "langmem", marker = "extra == 'arena'", specifier = ">=0.0.30" },
-    { name = "mcp", marker = "extra == 'mcp'", specifier = ">=1.0" },
-    { name = "mem0ai", marker = "extra == 'arena'", specifier = ">=2.0" },
-    { name = "notion-client", marker = "extra == 'notion'", specifier = ">=2.5" },
-    { name = "numpy", marker = "extra == 'voice'", specifier = ">=1.24" },
-    { name = "openai", specifier = ">=1.50" },
-    { name = "opentelemetry-exporter-otlp", marker = "extra == 'tracing'", specifier = ">=1.27" },
-    { name = "opentelemetry-sdk", marker = "extra == 'tracing'", specifier = ">=1.27" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
-    { name = "pytest", marker = "extra == 'eval'", specifier = ">=8.0" },
-    { name = "python-dotenv", specifier = ">=1.0" },
-    { name = "python-telegram-bot", marker = "extra == 'telegram'", specifier = ">=21.0" },
-    { name = "rich", specifier = ">=13.0" },
-    { name = "ruff", marker = "extra == 'dev'", specifier = "==0.16.0" },
-    { name = "sounddevice", marker = "extra == 'voice'", specifier = ">=0.4" },
-    { name = "soundfile", marker = "extra == 'voice-neural'", specifier = ">=0.12" },
-    { name = "supabase", marker = "extra == 'supabase'", specifier = ">=2.0" },
-    { name = "zep-cloud", marker = "extra == 'arena'", specifier = ">=2.0" },
-]
-provides-extras = ["eval", "tracing", "telegram", "gcal", "discord", "whatsapp", "voice", "voice-neural", "supabase", "arena", "notion", "mcp", "dev"]
 
 [[package]]
 name = "wasabi"

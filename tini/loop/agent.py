@@ -36,6 +36,7 @@ class LoopResult:
     reply: str
     tool_calls: list[LoopEvent] = field(default_factory=list)
     iterations: int = 0
+    usage: dict[str, int] = field(default_factory=lambda: {"in": 0, "out": 0, "calls": 0})
 
 
 def run_loop(
@@ -86,6 +87,9 @@ def run_loop(
             )
         notify("llm", {"iteration": iteration, "stop_reason": response.stop_reason,
                        "usage": {"in": response.usage.input_tokens, "out": response.usage.output_tokens}})
+        result.usage["in"] += response.usage.input_tokens
+        result.usage["out"] += response.usage.output_tokens
+        result.usage["calls"] += 1
 
         # the assistant's turn (text and/or tool requests) joins working memory
         messages.append({"role": "assistant", "content": response.content})

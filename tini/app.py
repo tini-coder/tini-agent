@@ -52,6 +52,12 @@ class Tini:
         captured: dict = {}
 
         def _capture(kind, ev):
+            if kind == "llm":
+                usage = ev.get("usage") or {}
+                total = captured.setdefault("usage", {"in": 0, "out": 0, "calls": 0})
+                total["in"] += int(usage.get("in", 0) or 0)
+                total["out"] += int(usage.get("out", 0) or 0)
+                total["calls"] += 1
             if kind == "gate":
                 captured["gate"] = {"decision": ev.get("decision"), "reason": ev.get("reason")}
             if kind == "route":
@@ -93,6 +99,7 @@ class Tini:
                            "path": captured.get("graph_path")}
                           if "graph_route" in captured else None),
                 "iterations": result.iterations,
+                "usage": result.usage,
                 "latency_ms": int((time.perf_counter() - t0) * 1000),
                 "tools": [{"tool": c["tool"], "status": _status(c["output"])}
                           for c in result.tool_calls],
@@ -153,6 +160,9 @@ class Tini:
             response = self.client.messages.create(
                 model=self.settings.small_model, max_tokens=600,
                 messages=[{"role": "user", "content": prompt}])
+            notify("llm", {"iteration": 1, "stop_reason": response.stop_reason,
+                           "usage": {"in": response.usage.input_tokens,
+                                     "out": response.usage.output_tokens}})
             return "".join(b.text for b in response.content if b.type == "text")
 
         graph = build_triage_graph(
@@ -168,5 +178,6 @@ class Tini:
         if isinstance(state.get("result"), LoopResult):
             return state["result"]
         if state.get("reply"):
-            return LoopResult(reply=state["reply"], tool_calls=[], iterations=1)
+            usage = captured.get("usage", {"in": 0, "out": 0, "calls": 0})
+            return LoopResult(reply=state["reply"], tool_calls=[], iterations=1, usage=usage)
         return None  # graph produced nothing → caller falls open to the loop

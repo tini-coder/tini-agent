@@ -32,6 +32,11 @@ def build_registry(conn: sqlite3.Connection, settings: Settings, memory=None) ->
     # ("find the World Cup games left and add them to my calendar").
     registry.register(search.make_tool())
 
+    if getattr(settings, "youtube", False):
+        from tini.tools import youtube
+
+        registry.register(youtube.make_tool())
+
     # Memory self-management — the agent can correct/forget memory, learn rules,
     # and author its own skills (feels like a personal agent, not a black box).
     if memory is not None:
@@ -40,8 +45,8 @@ def build_registry(conn: sqlite3.Connection, settings: Settings, memory=None) ->
         registry.register(memory_admin.make_create_skill_tool(settings, memory))
 
     # Experimental tools — off by default; opt in with TINI_EXPERIMENTAL=1.
-    # delegate_task (sub-agents via pi) is live; terminal/browser/cron are
-    # still skeletons that report "coming soon".
+    # delegate_task (sub-agents via pi) and the constrained terminal are live;
+    # browser/cron are still skeletons that report "coming soon".
     #
     # Trust settings.experimental ALONE. load_settings() already defaults it from
     # TINI_EXPERIMENTAL, so re-checking the env here would let the global switch

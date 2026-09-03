@@ -27,7 +27,8 @@ function histItem(m){
   if (m.meta) return {role:"tini", reply:m.content, gate:m.meta.gate,
                       graph:m.meta.graph,
                       tools:m.meta.tools, iterations:m.meta.iterations,
-                      latency_ms:m.meta.latency_ms, model:m.meta.model};
+                      latency_ms:m.meta.latency_ms, model:m.meta.model,
+                      provider:m.meta.provider, usage:m.meta.usage};
   return {role:"tini", reply:m.content, historical:true};
 }
 
@@ -79,6 +80,10 @@ function stagesRow(t, live){
   return `<div class="stages${live?"":" tele"}">`
     + graph + gate + tools + `<span class="stage ${replyCls}">reply</span></div>`;
 }
+const usageFooter = t => t.usage
+  ? `<div class="meta">usage · ${t.provider?`${esc(t.provider)} · `:""}${Number(t.usage.in||0).toLocaleString()} in / ${Number(t.usage.out||0).toLocaleString()} out (${t.usage.calls||0} LLM call${t.usage.calls===1?"":"s"})</div>`
+  : "";
+
 // The per-turn telemetry footer: seconds · iterations · model · consolidation.
 const teleFooter = t => `<div class="meta tele">${secs(t.latency_ms)} · ${t.iterations??"?"} iter${
   t.model?` · ${esc(t.model)}`:""}${t.consolidation?` · consolidated ${t.consolidation.new_facts} fact(s)`:""}</div>`;
@@ -90,6 +95,7 @@ const chatTurnCard = t => `<div class="card">
   ${nodesRow(t)}
   ${(t.tools||[]).length?`<div class="tele">${(t.tools||[]).map(toolRow).join("")}</div>`:""}
   <div class="r" style="margin-top:8px">${renderMarkdown(t.reply)}</div>
+  ${usageFooter(t)}
   ${teleFooter(t)}
 </div>`;
 
@@ -111,6 +117,7 @@ const nodesRow = m => {
 const streamingCard = m => `<div class="card">
   ${stagesRow(m, true)}
   ${nodesRow(m)}
+  ${m.usage?`<div class="meta">usage so far · ${Number(m.usage.in||0).toLocaleString()} in / ${Number(m.usage.out||0).toLocaleString()} out (${m.usage.calls||0} LLM call${m.usage.calls===1?"":"s"})</div>`:""}
   ${m.gate&&m.gate.reason?`<div class="meta" style="margin:0 0 6px">${esc(m.gate.reason)}</div>`:""}
   ${(m.tools||[]).map(toolRow).join("")}
   ${m.stream
@@ -171,6 +178,13 @@ function applyStreamEvent(pending, ev){
     pending.graph = {route: ev.target === "quick_reply" ? "quick" : "full",
                      reason: (pending.graph || {}).reason};
   else if (ev.kind === "triage") (pending.graph = pending.graph || {}).reason = ev.reason;
+  else if (ev.kind === "llm") {
+    const usage = ev.usage || {};
+    pending.usage = pending.usage || {in:0, out:0, calls:0};
+    pending.usage.in += Number(usage.in||0);
+    pending.usage.out += Number(usage.out||0);
+    pending.usage.calls += 1;
+  }
   else if (ev.kind === "text") pending.stream = (pending.stream || "") + (ev.delta || "");
   else if (ev.kind === "tool"){
     (pending.tools = pending.tools || []).push({

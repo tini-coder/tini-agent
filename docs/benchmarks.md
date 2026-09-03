@@ -218,9 +218,10 @@ and is **off by default** — set `TINI_EXPERIMENTAL=1` to register it.
 - **This is the substrate for Battery B** — each coding case is a `delegate_task`
   scored by whether pi's output passes tests.
 
-Three sibling boxes are still honest skeletons (return "coming soon"):
-`run_command` (Terminal), `browse_web` (Browser), `schedule_task` (Cron) — each
-needs a real sandbox + safety surface before it goes live.
+Two sibling boxes are still honest skeletons (return "coming soon"):
+`browse_web` (Browser) and `schedule_task` (Cron). `run_command` (Terminal) now
+provides a constrained read-only command runner for local inspection and public
+HTTP(S) lookups; shell composition and write-oriented commands are refused.
 
 *v2 idea already noted in the source:* run `pi --mode json` and stream its
 per-turn events into the dashboard's Loop tab, so a delegated coding run animates

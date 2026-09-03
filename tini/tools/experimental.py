@@ -22,9 +22,10 @@ native event stream on stdout — one JSON object per line. Two things fall out:
 
 Older pi builds without --mode json fall back to the plain `-p` text path.
 
-The other three boxes are still SKELETONS on purpose: each shows the *shape* of
-a capability and returns an honest "coming soon" (terminal/browser tools need a
-real sandbox + safety surface first). Everything here is OFF by default; set
+The browser and cron boxes remain SKELETONS on purpose: each shows the *shape* of
+a capability and returns an honest "coming soon". The terminal box is now a
+constrained read-only command runner for local inspection and public HTTP(S)
+lookups. Everything here is OFF by default; set
 `TINI_EXPERIMENTAL=1` to register these tools.
 """
 
@@ -33,6 +34,8 @@ from __future__ import annotations
 import json
 import os
 import queue
+import re
+import shlex
 import shutil
 import subprocess
 import threading
@@ -169,11 +172,124 @@ def _run_pi_json(cmd: list, workdir: Path, timeout: int, notify):
                                 "tokens_in": tin, "tokens_out": tout})
     return proc.wait(), reply, "".join(stderr_parts), raw, tin, tout, cost
 
+# run_command is deliberately a narrow read-only terminal, not a general shell.
+# Network lookup works through curl/wget; shell composition and write-oriented
+# flags stay out so a model cannot turn this into an unbounded command runner.
+_COMMANDS = {"cat", "date", "git", "grep", "head", "ls", "pwd", "rg", "sed", "tail", "curl", "wget"}
+_SHELL_TOKENS = {";", "&&", "||", "|", ">", ">>", "<", "`"}
+_GIT_READ_COMMANDS = {"branch", "diff", "log", "remote", "rev-parse", "show", "status"}
+_NETWORK_WRITE_FLAGS = {
+    "-d", "--data", "--data-binary", "--data-raw", "--data-urlencode", "-F", "--form",
+    "-T", "--upload-file", "-X", "--request", "-o", "--output", "--post-data",
+    "--post-file", "-O", "--output-document",
+}
+_MAX_COMMAND_OUTPUT = 12_000
+
+
+def make_run_command(settings: Settings) -> Tool:
+    """Run a small, read-only command set in TINI_HOME.
+
+    This is enough for public web lookups with curl/wget, local inspection, and
+    simple stdin filters, while avoiding shell=True and write-oriented tools.
+    """
+
+    def run_command(command: str = "", timeout_seconds: int = 20) -> str:
+        if not command.strip():
+            return "run_command needs a command, for example: curl -L https://example.com"
+        try:
+            tokens = shlex.split(command)
+        except ValueError as exc:
+            return f"Command rejected: {exc}"
+        if not tokens:
+            return "run_command needs a command, for example: curl -L https://example.com"
+        if any(token in {";", "&&", "||", ">", ">>", "<", "`"} for token in tokens):
+            return "Command rejected: shell operators and redirection are not allowed."
+        stages: list[list[str]] = [[]]
+        for token in tokens:
+            if token == "|":
+                if not stages[-1]:
+                    return "Command rejected: empty pipeline stage."
+                stages.append([])
+            else:
+                stages[-1].append(token)
+        if not stages[-1]:
+            return "Command rejected: empty pipeline stage."
+
+        for argv in stages:
+            executable = Path(argv[0]).name
+            if executable not in _COMMANDS:
+                return f"Command rejected: '{executable}' is not an allowed read-only command."
+            args = argv[1:]
+            if executable == "git" and (not args or args[0] not in _GIT_READ_COMMANDS):
+                return "Command rejected: only read-only git commands are allowed."
+            if executable in {"curl", "wget"}:
+                if any(arg in _NETWORK_WRITE_FLAGS for arg in args):
+                    return "Command rejected: network write/output flags are not allowed."
+                urls = [arg for arg in args if not arg.startswith("-")]
+                if any(not url.startswith(("http://", "https://")) for url in urls):
+                    return "Command rejected: network commands may access only http:// or https:// URLs."
+            if executable == "grep" and len([arg for arg in args if not arg.startswith("-")]) > 1:
+                return "Command rejected: grep may read only its pipeline input, not files."
+            if executable == "sed":
+                scripts = [arg for arg in args if not arg.startswith("-")]
+                if len(scripts) != 1 or not re.fullmatch(r"\d+(,\d+)?p", scripts[0]):
+                    return "Command rejected: sed is limited to line-printing filters."
+        try:
+            timeout = max(1, min(int(timeout_seconds), 30))
+        except (TypeError, ValueError):
+            timeout = 20
+        output = ""
+        exit_code = 0
+        for stage in stages:
+            try:
+                result = subprocess.run(
+                    stage,
+                    cwd=settings.home,
+                    input=output if output else None,
+                    stdin=subprocess.DEVNULL if not output else None,
+                    capture_output=True,
+                    text=True,
+                    shell=False,
+                    timeout=timeout,
+                    check=False,
+                    env=_delegate_env(),
+                )
+            except subprocess.TimeoutExpired:
+                return f"Command timed out after {timeout}s: {command}"
+            except OSError as exc:
+                return f"Couldn't run command: {exc}"
+            output = result.stdout
+            if result.stderr:
+                output += result.stderr
+            exit_code = result.returncode
+            if exit_code != 0:
+                break
+        output = output.strip()
+        if len(output) > _MAX_COMMAND_OUTPUT:
+            output = output[:_MAX_COMMAND_OUTPUT] + "\n...[output truncated]"
+        return f"Command exited with code {exit_code}.\n{output or '(no output)'}"
+
+    return Tool(
+        name="run_command",
+        description=(
+            "Run one allowed read-only terminal command or pipeline in TINI_HOME. Use curl "
+            "or wget with an http(s) URL for public web lookups, optionally piped through "
+            "grep or sed. Shell redirection, writes, and arbitrary executables are refused."
+        ),
+        input_schema={
+            "type": "object",
+            "properties": {
+                "command": {"type": "string", "description": "one allowed command, such as curl -L https://example.com"},
+                "timeout_seconds": {"type": "integer", "description": "timeout from 1 to 30 seconds, default 20"},
+            },
+            "required": ["command"],
+        },
+        fn=run_command,
+    )
+
+
 # Still-skeleton boxes: name → what it will do, and its box on the whiteboard.
 PLANNED = [
-    {"name": "run_command", "box": "Terminal tool",
-     "description": "Run a shell command in a sandbox and read the output — Hermes's 'Terminal' "
-                    "tool. Needs a real sandbox + safety surface first."},
     {"name": "browse_web", "box": "Browser tool",
      "description": "Open a page and read/click it — Hermes's 'Browser' tool. (search_web already "
                     "covers read-only web lookups.)"},
@@ -327,8 +443,7 @@ def _stub(name: str, description: str, box: str) -> Tool:
 
 
 def make_tools(settings: Settings) -> list[Tool]:
-    """Experimental tools, registered only when TINI_EXPERIMENTAL=1: the live
-    pi delegation plus the remaining skeletons."""
-    return [make_delegate_tool(settings)] + [
+    """Experimental tools, registered only when TINI_EXPERIMENTAL=1."""
+    return [make_delegate_tool(settings), make_run_command(settings)] + [
         _stub(p["name"], p["description"], p["box"]) for p in PLANNED
     ]

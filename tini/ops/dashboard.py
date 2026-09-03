@@ -125,6 +125,7 @@ def chat_stream(message: str, emit) -> None:
                    "summary": (c["output"] or "").split(". ")[0][:120]} for c in result.tool_calls],
         "consolidation": {"new_facts": cons["new_facts"]} if cons else None,
         "iterations": result.iterations,
+        "usage": result.usage,
         "latency_ms": latency_ms,
         # which brain answered — shown per card; a quick graph turn was the small model
         "model": agent.settings.small_model if quick else agent.settings.model,
@@ -465,7 +466,7 @@ def collect() -> dict:
                 "usage": e.get("usage"),
                 "detail": (e.get("user_message") or e.get("decision") or e.get("tool")
                        or e.get("reply") or "")}
-                       for e in events[-18:]][::-1],
+                       for e in events[-200:]][::-1],
         "trace_file": (trace_files[-1].name if trace_files else None),
         "trace_errors": trace_errors,
         "facts": rows("SELECT id, subject, content, source, created_at FROM facts ORDER BY id DESC"),
@@ -723,8 +724,46 @@ def _thread_history(conn, sid: str) -> list[dict]:
             "SELECT role, content, meta FROM chat_log WHERE session_id=? ORDER BY id",
             (sid,),
         ).fetchall()
-    return [{"role": r["role"], "content": r["content"],
-             "meta": json.loads(r["meta"]) if r["meta"] else None} for r in rows]
+    # History written before usage metadata existed can still recover its token
+    # counts from traces by matching each completed turn's user message.
+    traced = {}
+    current = None
+    for path in sorted((load_settings().home / "traces").glob("*.jsonl")):
+        try:
+            events = (json.loads(line) for line in iter_trace_lines(path))
+            for event in events:
+                if event.get("type") == "turn_start":
+                    current = {"message": event.get("user_message"),
+                               "provider": None, "model": None,
+                               "usage": {"in": 0, "out": 0, "calls": 0}}
+                elif current is not None and event.get("type") == "llm":
+                    usage = event.get("usage") or {}
+                    current["provider"] = event.get("provider") or current["provider"]
+                    current["model"] = event.get("model") or current["model"]
+                    current["usage"]["in"] += int(usage.get("in", 0) or 0)
+                    current["usage"]["out"] += int(usage.get("out", 0) or 0)
+                    current["usage"]["calls"] += 1
+                elif current is not None and event.get("type") == "turn_end":
+                    traced.setdefault(current["message"], []).append(current)
+                    current = None
+        except TraceEncodingError:
+            continue
+
+    out, pending_user = [], None
+    for row in rows:
+        meta = json.loads(row["meta"]) if row["meta"] else None
+        if row["role"] == "user":
+            pending_user = row["content"]
+        elif meta is None or not meta.get("usage"):
+            matches = traced.get(pending_user or "", [])
+            if matches:
+                trace = matches.pop(0)
+                meta = dict(meta or {})
+                meta["usage"] = trace["usage"]
+                meta.setdefault("provider", trace["provider"])
+                meta.setdefault("model", trace["model"])
+        out.append({"role": row["role"], "content": row["content"], "meta": meta})
+    return out
 
 
 def session_action(payload: dict) -> dict:

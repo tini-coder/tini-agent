@@ -184,6 +184,16 @@ INTEGRATIONS: tuple[Integration, ...] = (
                  EnvField("TINI_GOOGLE_CALENDAR_ID", "Calendar ID", default="primary")),
                 "gcal", "googleapiclient", "https://developers.google.com/calendar/api/quickstart/python",
                 ReloadMode.AGENT, lambda env: bool(env.get("TINI_GOOGLE_CALENDAR")), None),
+    Integration("youtube", "Analytics & Publishing", "YouTube Studio",
+                "Lets Tini read channel and YouTube Studio analytics.",
+                (EnvField("TINI_YOUTUBE", "Enable YouTube", FieldKind.BOOL),
+                 EnvField("YOUTUBE_ACCESS_TOKEN", "OAuth access token", required=True, secret=True),
+                 EnvField("YOUTUBE_REFRESH_TOKEN", "OAuth refresh token", secret=True),
+                 EnvField("YOUTUBE_CLIENT_ID", "OAuth client ID"),
+                 EnvField("YOUTUBE_CLIENT_SECRET", "OAuth client secret", secret=True),
+                 EnvField("YOUTUBE_CHANNEL_ID", "Channel ID", help="Optional. Empty uses the signed-in channel.")),
+                "youtube", "googleapiclient", "https://console.cloud.google.com/apis/library/youtube.googleapis.com",
+                ReloadMode.AGENT, lambda env: bool(env.get("TINI_YOUTUBE")), None),
     Integration("apple_calendar", "Calendar & Productivity", "Apple Calendar",
                 "Lets Tini work with Apple Calendar on this Mac.",
                 (EnvField("TINI_APPLE_CALENDAR", "Enable Apple Calendar", FieldKind.BOOL),
@@ -496,6 +506,12 @@ def _google_calendar_probe(values: Mapping[str, str]) -> None:
     )
 
 
+def _youtube_probe(values: Mapping[str, str]) -> None:
+    from tini.tools.youtube import probe_youtube
+
+    probe_youtube(values)
+
+
 def _apple_calendar_probe(values: Mapping[str, str]) -> None:
     from tini.tools import calendar
 
@@ -553,6 +569,8 @@ def _probed(integration: Integration) -> Integration:
         return Integration(**{**integration.__dict__, "probe": _apple_tools_probe})
     if integration.key == "google_calendar":
         return Integration(**{**integration.__dict__, "probe": _google_calendar_probe})
+    if integration.key == "youtube":
+        return Integration(**{**integration.__dict__, "probe": _youtube_probe})
     if integration.key == "notion":
         return Integration(**{**integration.__dict__, "probe": _notion_probe})
     if integration.key == "tavily":

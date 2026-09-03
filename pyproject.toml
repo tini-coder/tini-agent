@@ -59,6 +59,11 @@ gcal = [
     # application-default login`, which is a developer ritual, not a sign-in.
     "google-auth-oauthlib>=1.0",
 ]
+# Optional read-only YouTube Data API and YouTube Analytics API access.
+youtube = [
+    "google-api-python-client>=2.0",
+    "google-auth>=2.0",
+]
 # Optional gateway: message Tini from Discord
 discord = [
     "discord.py>=2.4",

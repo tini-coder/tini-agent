@@ -101,6 +101,9 @@ class Settings:
     google_calendar_id: str = field(
         default_factory=lambda: os.getenv("TINI_GOOGLE_CALENDAR_ID", "") or "primary"
     )
+    youtube: bool = field(
+        default_factory=lambda: os.getenv("TINI_YOUTUBE", "") in ("1", "true", "yes")
+    )
     # Give the agent read/write access to Apple Calendar, Mail, Reminders, Notes
     # (macOS; first use triggers the system Automation permission prompts).
     apple_tools: bool = field(

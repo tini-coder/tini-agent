@@ -211,4 +211,60 @@ def test_experimental_flag_gates_registration(tmp_path, monkeypatch):
     monkeypatch.setenv("TINI_EXPERIMENTAL", "1")
     app_on = make_tini(tmp_path / "on", client=ScriptedClient([]))
     assert "delegate_task" in app_on.tools._tools
-    assert "run_command" in app_on.tools._tools   # skeletons still registered
+    assert "run_command" in app_on.tools._tools
+
+
+def test_run_command_allows_read_only_web_lookup(tmp_path, monkeypatch):
+    record = {}
+
+    def fake_run(argv, **kwargs):
+        record["argv"] = argv
+        record["kwargs"] = kwargs
+        return SimpleNamespace(stdout="AI headline", stderr="", returncode=0)
+
+    monkeypatch.setattr(experimental.subprocess, "run", fake_run)
+    tool = experimental.make_run_command(Settings(home=tmp_path))
+    out = tool.fn(command="curl -L https://example.com/news")
+
+    assert "code 0" in out and "AI headline" in out
+    assert record["argv"] == ["curl", "-L", "https://example.com/news"]
+    assert record["kwargs"]["shell"] is not True
+    assert record["kwargs"]["cwd"] == tmp_path
+
+
+def test_run_command_supports_safe_read_only_pipelines(tmp_path, monkeypatch):
+    calls = []
+
+    def fake_run(argv, **kwargs):
+        calls.append((argv, kwargs))
+        output = {
+            "curl": "<title>One</title>\n<title>Two</title>\n",
+            "grep": "One\nTwo\n",
+            "sed": "One\nTwo\n",
+        }[argv[0]]
+        return SimpleNamespace(stdout=output, stderr="", returncode=0)
+
+    monkeypatch.setattr(experimental.subprocess, "run", fake_run)
+    tool = experimental.make_run_command(Settings(home=tmp_path))
+    out = tool.fn(command="curl -s https://example.com/rss | grep -oP title | sed -n 1,2p")
+
+    assert "One\nTwo" in out
+    assert [call[0] for call in calls] == [
+        ["curl", "-s", "https://example.com/rss"],
+        ["grep", "-oP", "title"],
+        ["sed", "-n", "1,2p"],
+    ]
+    assert calls[1][1]["input"].startswith("<title>")
+
+
+@pytest.mark.parametrize("command", [
+    "sh -c 'cat /etc/passwd'",
+    "curl https://example.com > output.txt",
+    "curl -X POST https://example.com",
+    "curl file:///etc/passwd",
+    "git commit -m nope",
+])
+def test_run_command_rejects_shell_or_write_access(tmp_path, command):
+    tool = experimental.make_run_command(Settings(home=tmp_path))
+    out = tool.fn(command=command)
+    assert "rejected" in out.lower()

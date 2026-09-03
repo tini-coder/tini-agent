@@ -43,6 +43,21 @@ function dbQueryView(){
     <div id="qout"></div>`;
 }
 
+const TRACE_PAGE_SIZE = 18;
+let tracePage = 1;
+function tracePageNav(total, page, pages){
+  if (pages <= 1) return `<div class="meta" style="margin-top:6px">${total} record${total===1?"":"s"}</div>`;
+  return `<div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+    <button class="save ghost" onclick="tracePageGo(${page-1})" ${page===1?"disabled":""}>Previous</button>
+    <span class="meta">page ${page} of ${pages} · ${total} records</span>
+    <button class="save ghost" onclick="tracePageGo(${page+1})" ${page===pages?"disabled":""}>Next</button>
+  </div>`;
+}
+function tracePageGo(page){
+  tracePage = page;
+  render();
+}
+
 // --- read-only SQL console (item: "a simple query editor like Supabase")
 function qFill(sql){ const b=document.getElementById("sqlbox"); if(b){ b.value=sql; runQuery(); } }
 async function runQuery(){
@@ -97,6 +112,19 @@ function memSemantic(d){
       <td class="meta">${esc(f.source)}</td>
       <td style="white-space:nowrap"><a class="reveal" onclick="editFact(${f.id})">edit</a> · <a class="reveal del" onclick="delMem('delete_fact',${f.id})">delete</a></td>
     </tr>`).join("")}</table></div>`;
+  return h;
+}
+function memUsage(d){
+  const calls = (d.turns||[]).flatMap(t => t.llm_calls||[])
+    .filter(call => call.provider && call.usage).slice(0,50);
+  let h = `<div class="meta" style="margin-bottom:12px">LLM calls used while Tini handled recent turns.
+    This is the model/provider usage behind the memory and harness activity; the full raw trace remains in Ops.</div>`;
+  if (!calls.length) return h + `<div class="card empty">no provider usage recorded yet</div>`;
+  h += `<div class="card" style="padding:4px 8px"><table><tr><th>when</th><th>provider</th><th>model</th><th>input tokens</th><th>output tokens</th></tr>${
+    calls.map(call => `<tr><td class="meta">${esc((call.ts||"").replace("T"," ").slice(0,19))}</td>
+      <td><code>${esc(call.provider)}</code></td><td class="meta">${esc(call.model||"")}</td>
+      <td class="meta">${Number(call.usage.in||0).toLocaleString()}</td>
+      <td class="meta">${Number(call.usage.out||0).toLocaleString()}</td></tr>`).join("")}</table></div>`;
   return h;
 }
 function memEpisodic(d){
@@ -506,9 +534,11 @@ const VIEWS = {
     sub = sub || "overview";
     const tabs = [["overview","Overview"],["semantic","Semantic",d.facts.length],
       ["episodic","Episodic",d.episodes.length],["skills","Skills",d.skills.length],
-      ["soul","SOUL"],["consolidation","Consolidation",d.chat_pending]];
+      ["soul","SOUL"],["consolidation","Consolidation",d.chat_pending],
+      ["usage","LLM usage",(d.turns||[]).flatMap(t => t.llm_calls||[]).filter(call => call.provider && call.usage).length]];
     let h = subtabBar("memory", tabs, sub);
     if (sub==="semantic") return h + memSemantic(d);
+    if (sub==="usage") return h + memUsage(d);
     if (sub==="episodic") return h + memEpisodic(d);
     if (sub==="skills") return h + memSkills(d);
     if (sub==="soul") return h + memSoul(d);
@@ -686,14 +716,19 @@ const VIEWS = {
     h += `<div class="card"><span class="r">${s.trace_files} trace file(s) in <code>traces/</code>${
       d.trace_file?` (newest: <code>${esc(d.trace_file)}</code>)`:""}. ${reveal("traces","open the traces folder")}.
       A trace is just "what happened, in order" — here are the most recent lines:</span></div>`;
-    h += (d.trace_tail||[]).length ? table(["event","detail","usage","when"], d.trace_tail.map(e => {
+    const traceRows = d.trace_tail||[];
+    const tracePages = Math.max(1, Math.ceil(traceRows.length / TRACE_PAGE_SIZE));
+    tracePage = Math.min(Math.max(tracePage, 1), tracePages);
+    const traceStart = (tracePage - 1) * TRACE_PAGE_SIZE;
+    const visibleTraceRows = traceRows.slice(traceStart, traceStart + TRACE_PAGE_SIZE);
+    h += traceRows.length ? table(["event","detail","usage","when"], visibleTraceRows.map(e => {
       const usage = e.provider && e.usage
         ? `${e.provider}${e.model?` · ${e.model}`:""} · ${e.usage.in||0} in / ${e.usage.out||0} out`
         : "";
       return `<tr><td><code>${esc(e.type)}</code></td><td class="meta">${esc(String(e.detail).slice(0,60))}</td>
          <td class="meta">${esc(usage)}</td>
           <td class="meta">${esc((e.ts||"").replace("T"," ").slice(0,19))}</td></tr>`;
-    }))
+    })) + tracePageNav(traceRows.length, tracePage, tracePages)
       : `<div class="card empty">no trace lines yet — talk to Tini</div>`;
     h += `<div class="meta" style="margin-top:8px">Span waterfalls: <code>make trace</code> + <code>OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317</code>.</div>`;
 
