@@ -29,10 +29,6 @@ and anywhere someone is representing the project.
 
 ## Enforcement
 
-Report anything that crosses the line by private message to
-[@ShenSeanChen](https://github.com/ShenSeanChen), or the email on his GitHub
-profile. Reports stay private.
-
 Responses are proportionate: usually a quiet word, sometimes an edited or
 removed comment, and — for repeated or serious behavior — a block from the
 repo. The maintainer's call is final, and he'll explain it.
